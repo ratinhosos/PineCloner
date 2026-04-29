@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel Admin - Bot Cloner</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="dark">
+<header class="topbar">
+    <h1>⚙️ Bot Cloner — Painel Admin</h1>
+    <a href="/logout" class="btn btn-outline">Sair</a>
+</header>
+
+<main class="container">
+    <div class="grid">
+        <div class="stat">📜 <strong><%= licenses.length %></strong> licenças totais</div>
+        <div class="stat">✅ <strong><%= licenses.filter(l => l.status === 'active').length %></strong> ativas</div>
+        <div class="stat">⏳ <strong><%= licenses.filter(l => l.status === 'inactive').length %></strong> disponíveis</div>
+        <div class="stat">🔐 <strong><%= tokens.length %></strong> tokens armazenados</div>
+    </div>
+
+    <section class="card">
+        <h2>🔑 Gerar Nova Licença</h2>
+        <form method="POST" action="/admin/licenses/create" class="row">
+            <select name="duration" required>
+                <option value="1">1 dia</option>
+                <option value="7">7 dias</option>
+                <option value="30" selected>30 dias</option>
+            </select>
+            <button type="submit" class="btn">Gerar Licença</button>
+        </form>
+    </section>
+
+    <section class="card">
+        <h2>📜 Licenças</h2>
+        <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Chave</th>
+                    <th>Duração</th>
+                    <th>Status</th>
+                    <th>Servidor</th>
+                    <th>Expira em</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (licenses.length === 0) { %>
+                    <tr><td colspan="6" class="empty">Nenhuma licença gerada ainda.</td></tr>
+                <% } %>
+                <% licenses.forEach(l => { %>
+                    <tr>
+                        <td><code class="copy" onclick="navigator.clipboard.writeText('<%= l.key %>')"><%= l.key %></code></td>
+                        <td><%= l.durationDays %>d</td>
+                        <td><span class="badge badge-<%= l.status %>"><%= l.status %></span></td>
+                        <td><%= l.serverId || '-' %></td>
+                        <td><%= l.expiresAt ? new Date(l.expiresAt).toLocaleString('pt-BR') : '-' %></td>
+                        <td>
+                            <form method="POST" action="/admin/licenses/delete/<%= l.id %>" style="display:inline">
+                                <button class="btn btn-danger btn-sm" onclick="return confirm('Excluir esta licença?')">🗑</button>
+                            </form>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>🔐 Tokens Armazenados</h2>
+        <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Tipo</th>
+                    <th>Token (mascarado)</th>
+                    <th>Criado em</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (tokens.length === 0) { %>
+                    <tr><td colspan="5" class="empty">Nenhum token armazenado.</td></tr>
+                <% } %>
+                <% tokens.forEach(t => { %>
+                    <tr>
+                        <td><%= t.userId %></td>
+                        <td><span class="badge badge-inactive"><%= t.tokenType %></span></td>
+                        <td><code><%= t.token %></code></td>
+                        <td><%= new Date(t.createdAt).toLocaleString('pt-BR') %></td>
+                        <td>
+                            <form method="POST" action="/admin/tokens/delete/<%= t.id %>" style="display:inline">
+                                <button class="btn btn-danger btn-sm" onclick="return confirm('Excluir este token?')">🗑</button>
+                            </form>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+        </div>
+    </section>
+
+    <footer class="foot">
+        Bot Cloner • Painel Administrativo • <span id="now"></span>
+    </footer>
+</main>
+<script>
+    document.getElementById('now').textContent = new Date().toLocaleString('pt-BR');
+</script>
+</body>
+</html>
